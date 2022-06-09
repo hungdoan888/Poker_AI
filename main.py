@@ -11,14 +11,14 @@ import pandas as pd
 
 #%% For Testing
 
-#values = ['A', 'A', 'K', 'J', '10']
-#suits = ['d', 'd', 'd', 'd', 'd']
+values = ['A', '2', '3', '4', '5']
+suits = ['d', 'd', 's', 'd', 'd']
 
-values = input('Enter Card Values: ')
-suits = input('Enter Suit Values: ')
+# values = input('Enter Card Values: ')
+# suits = input('Enter Suit Values: ')
 
-values = list(values.strip().split(' '))
-suits = list(suits.strip().split(' '))
+# values = list(values.strip().split(' '))
+# suits = list(suits.strip().split(' '))
 
 #%% Create Ranking Class
 
@@ -44,7 +44,7 @@ class Ranking:
         self.pairValue2 = 0
         self.threeKindValue = 0
         self.fourKindValue = 0
-        self.straightHighCardValue = 0
+        self.straightHighCardValue2 = 0
         self.flushHighCardValue = 0
 
         self.handValue = 0
@@ -86,10 +86,19 @@ def convertValueToNumValue(values):
 
 # Straight
 def isStraight(hand, ranking):
+    if (hand['value'].iloc[0] == '2' and
+        hand['value'].iloc[1] == '3' and 
+        hand['value'].iloc[2] == '4' and 
+        hand['value'].iloc[3] == '5' and 
+        hand['value'].iloc[4] == 'A'):
+        ranking.straight = True
+        ranking.straightHighCardValue2 = hand['numValue'].iloc[3]
+        return
+
     uniqueDiffs = hand['numValue'].diff().drop_duplicates().dropna()
     if uniqueDiffs.count() == 1 and uniqueDiffs.iloc[0] == 1:
         ranking.straight = True
-        ranking.straightHighCardValue = hand['numValue'].max()
+        ranking.straightHighCardValue2 = hand['numValue'].iloc[3]
 
 # Flush
 def isFlush(hand, ranking):
@@ -175,7 +184,7 @@ def evaluateHand(ranking):
     # Straight Flush
     elif ranking.straightFlush:
         ranking.handValue = 9
-        ranking.handValue += (ranking.flushHighCardValue * .01)
+        ranking.handValue += (ranking.straightHighCardValue2 * .01)
         print('Straight Flush')
 
     # Four of a kind
@@ -199,7 +208,7 @@ def evaluateHand(ranking):
     # Straight
     elif ranking.straight:
         ranking.handValue = 5
-        ranking.handValue += (ranking.straightHighCardValue * .01)
+        ranking.handValue += (ranking.straightHighCardValue2 * .01)
         print('Straight')
 
     # Three of a kind
