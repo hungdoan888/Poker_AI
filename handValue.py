@@ -34,7 +34,6 @@ class Ranking:
         self.threeKindValue = 0
         self.fourKindValue = 0
         self.straightHighCardValue = 0
-        self.flushHighCardValue = 0
         self.handValue = 0
 
 #%% Create Hand df
@@ -94,7 +93,11 @@ def isFlush(hand, ranking):
     uniqueSuitsCount = hand['suit'].drop_duplicates().count()
     if uniqueSuitsCount == 1:
         ranking.flush = True
-        ranking.flushHighCardValue = hand['numValue'].max()
+        ranking.highCardValue1 = hand['numValue'].iloc[4]
+        ranking.highCardValue2 = hand['numValue'].iloc[3]
+        ranking.highCardValue3 = hand['numValue'].iloc[2]
+        ranking.highCardValue4 = hand['numValue'].iloc[1]
+        ranking.highCardValue5 = hand['numValue'].iloc[0]
 
 # Straight Flush
 def isStraightFlush(ranking):
@@ -187,7 +190,11 @@ def scoreHand(ranking):
     # Flush
     elif ranking.flush:
         ranking.handValue = 5
-        ranking.handValue += (ranking.flushHighCardValue * .01)
+        ranking.handValue += (ranking.highCardValue1 * .01 + 
+                              ranking.highCardValue2 * .0001 + 
+                              ranking.highCardValue3 * .000001 + 
+                              ranking.highCardValue4 * .00000001 + 
+                              ranking.highCardValue5 * .0000000001)
 
     # Straight
     elif ranking.straight:
@@ -250,8 +257,9 @@ def evaluateHand(values, suits):
 
 if __name__ == '__main__':
     # Define values and hand
-    values = ['A', 'K', 'Q', 'J', '10']
+    values = ['2', '10', '9', '5', 'A']
     suits = ['d', 'd', 'd', 'd', 'd']
     
     # Get hand score
     handScore = evaluateHand(values, suits)
+    print(handScore)
