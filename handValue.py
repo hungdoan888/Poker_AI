@@ -9,17 +9,6 @@ Created on Mon Jun  6 19:29:00 2022
 
 import pandas as pd
 
-#%% For Testing
-
-values = ['A', '2', '3', '4', '5']
-suits = ['d', 'd', 's', 'd', 'd']
-
-# values = input('Enter Card Values: ')
-# suits = input('Enter Suit Values: ')
-
-# values = list(values.strip().split(' '))
-# suits = list(suits.strip().split(' '))
-
 #%% Create Ranking Class
 
 class Ranking:
@@ -44,9 +33,8 @@ class Ranking:
         self.pairValue2 = 0
         self.threeKindValue = 0
         self.fourKindValue = 0
-        self.straightHighCardValue2 = 0
+        self.straightHighCardValue = 0
         self.flushHighCardValue = 0
-
         self.handValue = 0
 
 #%% Create Hand df
@@ -91,14 +79,15 @@ def isStraight(hand, ranking):
         hand['value'].iloc[2] == '4' and 
         hand['value'].iloc[3] == '5' and 
         hand['value'].iloc[4] == 'A'):
+        hand.loc[hand['value'] == 'A', 'numValue'] = 1
         ranking.straight = True
-        ranking.straightHighCardValue2 = hand['numValue'].iloc[3]
+        ranking.straightHighCardValue = hand['numValue'].max()
         return
 
     uniqueDiffs = hand['numValue'].diff().drop_duplicates().dropna()
     if uniqueDiffs.count() == 1 and uniqueDiffs.iloc[0] == 1:
         ranking.straight = True
-        ranking.straightHighCardValue2 = hand['numValue'].iloc[3]
+        ranking.straightHighCardValue = hand['numValue'].max()
 
 # Flush
 def isFlush(hand, ranking):
@@ -173,94 +162,96 @@ def pairings(hand, ranking):
     else:
         print('Error when evaluating pairs')   
 
-#%% Evaluate Hand
+#%% Score Hand
 
-def evaluateHand(ranking):
+def scoreHand(ranking):
     # Royal Flush
     if ranking.royalFlush:
-        ranking.handValue = 10
-        print('Royal Flush')
+        ranking.handValue = 9
 
     # Straight Flush
     elif ranking.straightFlush:
-        ranking.handValue = 9
-        ranking.handValue += (ranking.straightHighCardValue2 * .01)
-        print('Straight Flush')
+        ranking.handValue = 8
+        ranking.handValue += (ranking.straightHighCardValue * .01)
 
     # Four of a kind
     elif ranking.fourKind:
-        ranking.handValue = 8
+        ranking.handValue = 7
         ranking.handValue += (ranking.fourKindValue * .01 + ranking.highCardValue1 * .0001)
-        print('Four of a kind')
 
     # Full House
     elif ranking.fullHouse:
-        ranking.handValue = 7
+        ranking.handValue = 6
         ranking.handValue += (ranking.threeKindValue * .01 + ranking.pairValue1 * .0001)
-        print('Full House')
 
     # Flush
     elif ranking.flush:
-        ranking.handValue = 6
+        ranking.handValue = 5
         ranking.handValue += (ranking.flushHighCardValue * .01)
-        print('Flush')
 
     # Straight
     elif ranking.straight:
-        ranking.handValue = 5
-        ranking.handValue += (ranking.straightHighCardValue2 * .01)
-        print('Straight')
+        ranking.handValue = 4
+        ranking.handValue += (ranking.straightHighCardValue * .01)
 
     # Three of a kind
     elif ranking.threeKind:
-        ranking.handValue = 4
+        ranking.handValue = 3
         ranking.handValue += (ranking.threeKindValue * .01 + 
                               ranking.highCardValue1 * .0001 + 
                               ranking.highCardValue2 * .000001)
-        print('Three of a kind')
 
     # Two Pair
     elif ranking.twoPair:
-        ranking.handValue = 3
+        ranking.handValue = 2
         ranking.handValue += (ranking.pairValue1 * .01 + 
                               ranking.pairValue2 * .0001 + 
                               ranking.highCardValue1 * .000001)
-        print('Two Pair')
 
     # Pair
     elif ranking.pair:
-        ranking.handValue = 2
+        ranking.handValue = 1
         ranking.handValue += (ranking.pairValue1 * .01 + 
                               ranking.highCardValue1 * .0001 + 
                               ranking.highCardValue2 * .000001 + 
                               ranking.highCardValue3 * .00000001)
-        print('Pair')
 
     # High Card
     elif ranking.highCard:
-        ranking.handValue = 1
+        ranking.handValue = 0
         ranking.handValue += (ranking.highCardValue1 * .01 + 
                               ranking.highCardValue2 * .0001 + 
                               ranking.highCardValue3 * .000001 + 
                               ranking.highCardValue4 * .00000001 + 
                               ranking.highCardValue5 * .0000000001)
-        print('High Card')
-    print(ranking.handValue)
+
+#%% Evaluate Hand
+
+def evaluateHand(values, suits):
+
+    # Define Ranking
+    ranking = Ranking()
+    
+    # Create Hand
+    hand = createHandDf(values, suits)
+    
+    # Evaluate Hand
+    isStraight(hand, ranking)
+    isFlush(hand, ranking)
+    isStraightFlush(ranking)
+    isRoyalFlush(hand, ranking)
+    pairings(hand, ranking)
+    
+    # Give hand a decimal score
+    scoreHand(ranking)
+    return ranking.handValue
 
 #%% Main
 
-# Define Ranking
-ranking = Ranking()
-
-# Create Hand
-hand = createHandDf(values, suits)
-
-# Determine Straight
-isStraight(hand, ranking)
-isFlush(hand, ranking)
-isStraightFlush(ranking)
-isRoyalFlush(hand, ranking)
-pairings(hand, ranking)
-evaluateHand(ranking)
-
-# %%
+if __name__ == '__main__':
+    # Define values and hand
+    values = ['A', 'K', 'Q', 'J', '10']
+    suits = ['d', 'd', 'd', 'd', 'd']
+    
+    # Get hand score
+    handScore = evaluateHand(values, suits)
